@@ -1,0 +1,27 @@
+This example uses the bcm2835 library to comunicate with the SPI.
+The reference web site is: http://www.airspayce.com/mikem/bcm2835/
+
+Download the library: http://www.airspayce.com/mikem/bcm2835/bcm2835-1.50.tar.gz, then:
+
+tar zxvf bcm2835-1.50.tar.gz
+cd bcm2835-1.xx
+./configure
+make
+sudo make check
+sudo make install
+cd ..
+
+then compile the project from inside the project directory:
+
+cd EasyCAT_Test
+
+for the Standard example: gcc -o EasyCAT_Test EasyCAT_Test.cpp EasyCAT.cpp -l bcm2835
+for the Custom example: gcc -DCUSTOM -o EasyCAT_Test EasyCAT_Test_Custom.cpp EasyCAT.cpp -l bcm2835
+
+to run the example:
+
+sudo ./EasyCAT_Test
+
+
+# Attilas notes:
+gcc -o EasyCAT_Test EasyCAT_Test.cpp EasyCAT.cpp -lstdc++
