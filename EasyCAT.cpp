@@ -11,29 +11,7 @@
 
 #include "EasyCAT.h"
 
-//********************************************************************************************
-//                                                                                           *
-// AB&T Tecnologie Informatiche - Ivrea Italy * http://www.bausano.net *
-// https://www.ethercat.org/en/products/791FFAA126AD43859920EA64384AD4FD.htm *
-//                                                                                           *
-//********************************************************************************************
-//                                                                                           *
-// This software is distributed as an example, in the hope that it could be
-// useful,          * WITHOUT ANY WARRANTY, even the implied warranty of FITNESS
-// FOR A PARTICULAR PURPOSE       *
-//                                                                                           *
-//********************************************************************************************
-
-//----- EasyCAT library for Raspberry PI V 2.1 200213
-//----------------------------------------
-//
-// Changed SPI chip select to automatic
-// The SPI transfers are made through buffers
-// Function "SPIReadRegisterDirect" now read always 4 bytes, as for datasheet
-// specs
-
-//----- Derived from the AB&T EasyCAT Arduino shield library V 2.0
-//--------------------------------
+// source:
 // https://raspberry-projects.com/pi/programming-in-c/spi/using-the-spi-interface
 
 //#define DEB                                                     // enable
@@ -46,22 +24,17 @@ void EasyCAT::SPI_BuffTransfer(
     uint32_t Len) // static function for the SPI transfer
 {                 //
 
-  std::cout << "SPI_BuffTransfer ";
-  for (int k = 0; k < Len; k++) {
-    std::cout << static_cast<int>(Buff[k]) << " ";
-  }
-  std::cout << std::endl;
-
   struct spi_ioc_transfer spi;
   int i = 0;
   int retVal = -1;
   int spi_cs_fd;
   spi = (const struct spi_ioc_transfer){0};
 
-  if (spi_device)
+  if (spi_device == 0) {
     spi_cs_fd = spi_cs1_fd;
-  else
+  } else {
     spi_cs_fd = spi_cs0_fd;
+  }
 
   spi.tx_buf = (unsigned long)Buff; // transmit from "data"
   spi.rx_buf = (unsigned long)Buff; // receive into "data"
@@ -70,15 +43,15 @@ void EasyCAT::SPI_BuffTransfer(
   spi.speed_hz = spi_speed;
   spi.bits_per_word = spi_bitsPerWord;
   spi.cs_change = 0; // 0=Set CS high after a transfer, 1=leave CS set low
-  //spi.pad = 0;
-  //spi.tx_nbits = 0;
-  //spi.rx_nbits = 0;
+  // spi.pad = 0;
+  // spi.tx_nbits = 0;
+  // spi.rx_nbits = 0;
 
   retVal = ioctl(spi_cs_fd, SPI_IOC_MESSAGE(1), &spi);
 
   if (retVal < 0) {
-    perror("Error - Problem transmitting spi data..ioctl");
-    std::cout << retVal << std::endl;
+    std::cerr << "Error - Problem transmitting spi data..ioct retval: "
+              << retVal << std::endl;
     exit(1);
   }
 }
@@ -124,67 +97,72 @@ int EasyCAT::Connect() {
   //----- SET SPI BUS SPEED -----
   spi_speed = 1000000; // 1000000 = 1MHz (1uS per bit)
 
-  if (spi_device) {
-    spi_cs_fd = &spi_cs1_fd;
-  } else {
-    spi_cs_fd = &spi_cs0_fd;
-  }
-
   std::string spi_device_name;
-  if (spi_device) {
+
+  if (spi_device == 0) {
+    spi_cs_fd = &spi_cs0_fd;
+    spi_device_name = "/dev/spidev0.0";
+  } else if (spi_device == 1) {
+    spi_cs_fd = &spi_cs1_fd;
     spi_device_name = "/dev/spidev0.1";
   } else {
-    spi_device_name = "/dev/spidev0.0";
+    std::cerr << "Error - Invalid spi device number: " << spi_device
+              << std::endl;
+    exit(1);
   }
 
   std::cout << "Choose: " << spi_device_name << std::endl;
   *spi_cs_fd = open(spi_device_name.c_str(), O_RDWR);
 
   if (*spi_cs_fd < 0) {
-    perror("Error - Could not open SPI device");
+    std::cerr << "Error - Could not open SPI device" << std::endl;
     exit(1);
-  } else {
-    std::cout << "Spi device is opened" << std::endl;
   }
 
   status_value = ioctl(*spi_cs_fd, SPI_IOC_WR_MODE, &spi_mode);
   if (status_value < 0) {
-    perror("Could not set SPIMode (WR)...ioctl fail");
+    std::cerr << "Could not set SPIMode (WR)...ioctl fail: " << status_value
+              << std::endl;
     exit(1);
   }
 
   status_value = ioctl(*spi_cs_fd, SPI_IOC_RD_MODE, &spi_mode);
   if (status_value < 0) {
-    perror("Could not set SPIMode (RD)...ioctl fail");
+    std::cerr << "Could not set SPIMode (RD)...ioctl fail: " << status_value
+              << std::endl;
     exit(1);
   }
 
   status_value = ioctl(*spi_cs_fd, SPI_IOC_WR_BITS_PER_WORD, &spi_bitsPerWord);
   if (status_value < 0) {
-    perror("Could not set SPI bitsPerWord (WR)...ioctl fail");
+    std::cerr << "Could not set SPI bitsPerWord (WR)...ioctl fail: "
+              << status_value << std::endl;
     exit(1);
   }
 
   status_value = ioctl(*spi_cs_fd, SPI_IOC_RD_BITS_PER_WORD, &spi_bitsPerWord);
   if (status_value < 0) {
-    perror("Could not set SPI bitsPerWord(RD)...ioctl fail");
+    std::cerr << "Could not set SPI bitsPerWord(RD)...ioctl fail: "
+              << status_value << std::endl;
     exit(1);
   }
 
   status_value = ioctl(*spi_cs_fd, SPI_IOC_WR_MAX_SPEED_HZ, &spi_speed);
   if (status_value < 0) {
-    perror("Could not set SPI speed (WR)...ioctl fail");
+    std::cerr << "Could not set SPI speed (WR)...ioctl fail: " << status_value
+              << std::endl;
     exit(1);
   }
 
   status_value = ioctl(*spi_cs_fd, SPI_IOC_RD_MAX_SPEED_HZ, &spi_speed);
   if (status_value < 0) {
-    perror("Could not set SPI speed (RD)...ioctl fail");
+    std::cerr << "Could not set SPI speed (RD)...ioctl fail: " << status_value
+              << std::endl;
     exit(1);
   }
 
   std::cout << "Connected successfully" << std::endl;
-  return (status_value);
+  return status_value;
 }
 
 //---- EtherCAT task
@@ -202,10 +180,11 @@ EasyCAT::MainTask() // must be called cyclically by the application
 
   TempLong.Long =
       SPIReadRegisterIndirect(WDOG_STATUS, 1); // read watchdog status
-  if ((TempLong.Byte[0] & 0x01) == 0x01)       //
+  if ((TempLong.Byte[0] & 0x01) == 0x01) {
     WatchDog = false; // set/reset the corrisponding flag
-  else                //
-    WatchDog = true;  //
+  } else {
+    WatchDog = true;
+  }
 
   TempLong.Long = SPIReadRegisterIndirect(
       AL_STATUS, 1);                // read the EtherCAT State Machine status
@@ -217,17 +196,19 @@ EasyCAT::MainTask() // must be called cyclically by the application
 
   //--- process data transfer ----------
   //
-  if (!Operational)             // if watchdog is active or we are
+  if (!Operational)                        // if watchdog is active or we are
   {                                        // not in operational state, reset
     for (i = 0; i < TOT_BYTE_NUM_OUT; i++) // the output buffer
       BufferOut.Byte[i] = 0;               //
 
-//#ifdef DEB                         // only if debug is enabled
-    if (!Operational)              //
-      printf("Not operational\n"); //
-    if (WatchDog)                  //
-      printf("WatchDog\n");        //
-//#endif                             //
+#ifdef DEB // only if debug is enabled
+    if (!Operational) {
+      printf("Not operational\n");
+    }
+    if (WatchDog) {
+      printf("WatchDog\n");
+    }
+#endif
   }
 
   else {

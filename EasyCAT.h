@@ -1,23 +1,4 @@
 
-//********************************************************************************************
-//                                                                                           *
-// AB&T Tecnologie Informatiche - Ivrea Italy * http://www.bausano.net *
-// https://www.ethercat.org/en/products/791FFAA126AD43859920EA64384AD4FD.htm *
-//                                                                                           *
-//********************************************************************************************
-//                                                                                           *
-// This software is distributed as an example, in the hope that it could be
-// useful,          * WITHOUT ANY WARRANTY, even the implied warranty of FITNESS
-// FOR A PARTICULAR PURPOSE       *
-//                                                                                           *
-//********************************************************************************************
-
-//----- EasyCAT library for Raspberry PI V 3.0 200213
-//----------------------------------------
-
-//----- Derived from the AB&T EasyCAT Arduino shield library V 2.0
-//--------------------------
-
 #ifndef EasyCAT_H
 #define EasyCAT_H
 

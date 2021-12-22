@@ -1,21 +1,3 @@
-//********************************************************************************************
-//                                                                                           *
-// AB&T Tecnologie Informatiche - Ivrea Italy * http://www.bausano.net *
-// https://www.ethercat.org/en/products/791FFAA126AD43859920EA64384AD4FD.htm *
-//                                                                                           *
-//********************************************************************************************
-//                                                                                           *
-// This software is distributed as an example, in the hope that it could be
-// useful,          * WITHOUT ANY WARRANTY, even the implied warranty of FITNESS
-// FOR A PARTICULAR PURPOSE       *
-//                                                                                           *
-//********************************************************************************************
-
-//----- EasyCAT HAT application basic example for Raspberry
-//----------------------------------
-//----- Derived from the example project TestEasyCAT.ino for the AB&T EasyCAT
-// Arduino shield
-
 #include <stdio.h>
 #include <unistd.h>
 
@@ -103,20 +85,20 @@ int main() {
     cValue = EASYCAT.BufferOut.Byte[0]; // we read the input bit status reading
                                         // the first byte from output buffer
 
-    //if (OutCount > 20) {
-      // Print every 2 seconds on consolle the values of byte[0], byte[1],
-      // byte[2] and byte[3] received from the Master
+    // if (OutCount > 20) {
+    //  Print every 2 seconds on consolle the values of byte[0], byte[1],
+    //  byte[2] and byte[3] received from the Master
 
-      //OutCount = 0;
+    // OutCount = 0;
 
-      printf("Byte[0] = %d\n", EASYCAT.BufferOut.Byte[0]);
-      printf("Byte[1] = %d\n", EASYCAT.BufferOut.Byte[1]);
-      printf("Byte[2] = %d\n", EASYCAT.BufferOut.Byte[2]);
-      printf("Byte[3] = %d\n\n", EASYCAT.BufferOut.Byte[3]);
-      printf("BytIn[30] = %d\n\n", EASYCAT.BufferIn.Byte[30]);
+    printf("Byte[0] = %d\n", EASYCAT.BufferOut.Byte[0]);
+    printf("Byte[1] = %d\n", EASYCAT.BufferOut.Byte[1]);
+    printf("Byte[2] = %d\n", EASYCAT.BufferOut.Byte[2]);
+    printf("Byte[3] = %d\n\n", EASYCAT.BufferOut.Byte[3]);
+    printf("BytIn[30] = %d\n\n", EASYCAT.BufferIn.Byte[30]);
     //}
 
-    //OutCount++;
+    // OutCount++;
 
     usleep(100000); // delay of 100mS
   }
