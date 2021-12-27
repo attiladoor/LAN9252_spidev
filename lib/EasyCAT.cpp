@@ -25,10 +25,8 @@ void EasyCAT::SPI_BuffTransfer(
 {                 //
 
   struct spi_ioc_transfer spi;
-  int i = 0;
   int retVal = -1;
   int spi_cs_fd;
-  spi = (const struct spi_ioc_transfer){0};
 
   if (spi_device == 0) {
     spi_cs_fd = spi_cs1_fd;
@@ -36,8 +34,8 @@ void EasyCAT::SPI_BuffTransfer(
     spi_cs_fd = spi_cs0_fd;
   }
 
-  spi.tx_buf = (unsigned long)Buff; // transmit from "data"
-  spi.rx_buf = (unsigned long)Buff; // receive into "data"
+  spi.tx_buf = reinterpret_cast<unsigned long>(Buff); // transmit from "data"
+  spi.rx_buf = reinterpret_cast<unsigned long>(Buff); // receive into "data"
   spi.len = Len;
   spi.delay_usecs = 0;
   spi.speed_hz = spi_speed;
@@ -362,8 +360,9 @@ void EasyCAT::SPIReadProcRamFifo() // read data from the output process ram,
   SPIWriteRegisterDirect(ECAT_PRAM_RD_CMD,
                          PRAM_ABORT); // abort any possible pending transfer
 
-  SPIWriteRegisterDirect(ECAT_PRAM_RD_ADDR_LEN,
-                         (0x00001000 | (((uint32_t)TOT_BYTE_NUM_OUT) << 16)));
+  SPIWriteRegisterDirect(
+      ECAT_PRAM_RD_ADDR_LEN,
+      (0x00001000 | (static_cast<uint32_t>(TOT_BYTE_NUM_OUT) << 16)));
   // the high word is the num of bytes
   // to read 0xTOT_BYTE_NUM_OUT----
   // the low word is the output process
@@ -387,7 +386,8 @@ void EasyCAT::SPIReadProcRamFifo() // read data from the output process ram,
 
   SPI_BuffTransfer(&LocalBuff[0], 3 + FST_BYTE_NUM_ROUND_OUT); // SPI transfer
 
-  memcpy((char *)&BufferOut.Byte[0], &LocalBuff[3], FST_BYTE_NUM_ROUND_OUT);
+  memcpy(reinterpret_cast<char *>(&BufferOut.Byte[0]), &LocalBuff[3],
+         FST_BYTE_NUM_ROUND_OUT);
 #endif
 
 #if SEC_BYTE_NUM_OUT > 0 //-- if we have to transfer more then 64 bytes -----
@@ -429,8 +429,9 @@ void EasyCAT::SPIWriteProcRamFifo() // write data to the input process ram,
   SPIWriteRegisterDirect(ECAT_PRAM_WR_CMD,
                          PRAM_ABORT); // abort any possible pending transfer
 
-  SPIWriteRegisterDirect(ECAT_PRAM_WR_ADDR_LEN,
-                         (0x00001200 | (((uint32_t)TOT_BYTE_NUM_IN) << 16)));
+  SPIWriteRegisterDirect(
+      ECAT_PRAM_WR_ADDR_LEN,
+      (0x00001200 | (static_cast<uint32_t>(TOT_BYTE_NUM_IN) << 16)));
   // the high word is the num of bytes
   // to write 0xTOT_BYTE_NUM_IN----
   // the low word is the input process
@@ -451,7 +452,8 @@ void EasyCAT::SPIWriteProcRamFifo() // write data to the input process ram,
   LocalBuff[1] = 0x00;           // address of the write fifo
   LocalBuff[2] = 0x20;           // MsByte first
 
-  memcpy(&LocalBuff[3], (char *)&BufferIn.Byte[0], FST_BYTE_NUM_ROUND_IN);
+  memcpy(&LocalBuff[3], reinterpret_cast<char *>(&BufferIn.Byte[0]),
+         FST_BYTE_NUM_ROUND_IN);
 
   SPI_BuffTransfer(&LocalBuff[0], 3 + FST_BYTE_NUM_ROUND_IN); // SPI transfer
 #endif
