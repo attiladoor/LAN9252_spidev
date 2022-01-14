@@ -280,11 +280,11 @@ public:
   unsigned char MainTask(); // EtherCAT main task
                             // must be called cyclically by the application
 
+  PROCBUFFER_OUT &getBufferOut() { return BufferOut; }
+  PROCBUFFER_IN &getBufferIn() { return BufferIn; }
+
   int Connect(); // EasyCAT board initialization
   int Disconnect();
-
-  PROCBUFFER_OUT BufferOut; // output process data buffer
-  PROCBUFFER_IN BufferIn;   // input process data buffer
 
 private:
   void SPIWriteRegisterDirect(unsigned short Address, unsigned long DataOut);
@@ -309,6 +309,9 @@ private:
   unsigned char spi_bitsPerWord;
   unsigned int spi_speed;
   int spi_device = 0; // select SPI device
+
+  PROCBUFFER_OUT BufferOut; // output process data buffer
+  PROCBUFFER_IN BufferIn;   // input process data buffer
 };
 
 #endif

@@ -68,21 +68,24 @@ int main() {
     // with different slopes and periods, for
     // test pourpose, in input Bytes 2,3,4,5,30,31
 
-    EASYCAT.BufferIn.Byte[2] = LOBYTE(ContaUp); // slow rising slope
-    EASYCAT.BufferIn.Byte[3] = HIBYTE(ContaUp); // extremly slow rising slope
+    EASYCAT.getBufferIn().Byte[2] = LOBYTE(ContaUp); // slow rising slope
+    EASYCAT.getBufferIn().Byte[3] =
+        HIBYTE(ContaUp); // extremly slow rising slope
 
-    EASYCAT.BufferIn.Byte[4] = LOBYTE(ContaDown); // slow falling slope
-    EASYCAT.BufferIn.Byte[5] = HIBYTE(ContaDown); // extremly slow falling slope
-    EASYCAT.BufferIn.Byte[6] = 123;
+    EASYCAT.getBufferIn().Byte[4] = LOBYTE(ContaDown); // slow falling slope
+    EASYCAT.getBufferIn().Byte[5] =
+        HIBYTE(ContaDown); // extremly slow falling slope
+    EASYCAT.getBufferIn().Byte[6] = 123;
 
-    EASYCAT.BufferIn.Byte[30] = LOBYTE(ContaUp)
-                                << 2; // medium speed rising slope
-    EASYCAT.BufferIn.Byte[31] = LOBYTE(ContaDown)
-                                << 2; // medium speed falling slope
+    EASYCAT.getBufferIn().Byte[30] = LOBYTE(ContaUp)
+                                     << 2; // medium speed rising slope
+    EASYCAT.getBufferIn().Byte[31] = LOBYTE(ContaDown)
+                                     << 2; // medium speed falling slope
 
     // --- eight bits management ---
 
-    cValue = EASYCAT.BufferOut.Byte[0]; // we read the input bit status reading
+    cValue =
+        EASYCAT.getBufferOut().Byte[0]; // we read the input bit status reading
                                         // the first byte from output buffer
 
     // if (OutCount > 20) {
@@ -91,11 +94,11 @@ int main() {
 
     // OutCount = 0;
 
-    printf("Byte[0] = %d\n", EASYCAT.BufferOut.Byte[0]);
-    printf("Byte[1] = %d\n", EASYCAT.BufferOut.Byte[1]);
-    printf("Byte[2] = %d\n", EASYCAT.BufferOut.Byte[2]);
-    printf("Byte[3] = %d\n\n", EASYCAT.BufferOut.Byte[3]);
-    printf("BytIn[30] = %d\n\n", EASYCAT.BufferIn.Byte[30]);
+    printf("Byte[0] = %d\n", EASYCAT.getBufferOut().Byte[0]);
+    printf("Byte[1] = %d\n", EASYCAT.getBufferOut().Byte[1]);
+    printf("Byte[2] = %d\n", EASYCAT.getBufferOut().Byte[2]);
+    printf("Byte[3] = %d\n\n", EASYCAT.getBufferOut().Byte[3]);
+    printf("BytIn[30] = %d\n\n", EASYCAT.getBufferOut().Byte[30]);
     //}
 
     // OutCount++;
