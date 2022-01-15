@@ -269,7 +269,7 @@ public:
   MainTask() override; // EtherCAT main task
                        // must be called cyclically by the application
 
-  PROCBUFFER_OUT &getBufferOut() override { return BufferOut; }
+  const PROCBUFFER_OUT &getBufferOut() override { return BufferOut; }
   PROCBUFFER_IN &getBufferIn() override { return BufferIn; }
 
   int Connect() override; // EasyCAT board initialization
