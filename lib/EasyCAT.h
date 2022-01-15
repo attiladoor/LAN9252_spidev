@@ -254,37 +254,26 @@ typedef union {
   unsigned char Byte[4];
 } ULONG;
 
-#ifdef BYTE_NUM // Input/Output buffers for Standard Mode
-
-typedef struct            //-- output buffer -----------------
-{                         //
-  uint8_t Byte[BYTE_NUM]; //
-} PROCBUFFER_OUT;         //
-
-typedef struct            //-- input buffer ------------------
-{                         //
-  uint8_t Byte[BYTE_NUM]; //
-} PROCBUFFER_IN;          //
-
-#endif
+#include "EasyCAT_interface.h"
 
 typedef enum { ASYNC, DC_SYNC, SM_SYNC } SyncMode;
 
 //-------------------------------------------------------------------------------------------------
 
-class EasyCAT {
+class EasyCAT : public EasyCAT_interface {
 public:
   EasyCAT() = default; // default constructor
   ~EasyCAT() { Disconnect(); }
 
-  unsigned char MainTask(); // EtherCAT main task
-                            // must be called cyclically by the application
+  unsigned char
+  MainTask() override; // EtherCAT main task
+                       // must be called cyclically by the application
 
-  PROCBUFFER_OUT &getBufferOut() { return BufferOut; }
-  PROCBUFFER_IN &getBufferIn() { return BufferIn; }
+  PROCBUFFER_OUT &getBufferOut() override { return BufferOut; }
+  PROCBUFFER_IN &getBufferIn() override { return BufferIn; }
 
-  int Connect(); // EasyCAT board initialization
-  int Disconnect();
+  int Connect() override; // EasyCAT board initialization
+  int Disconnect() override;
 
 private:
   void SPIWriteRegisterDirect(unsigned short Address, unsigned long DataOut);
