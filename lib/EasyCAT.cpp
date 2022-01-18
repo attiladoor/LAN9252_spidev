@@ -23,12 +23,12 @@ void EasyCAT::SPI_BuffTransfer(
     char *Buff,
     uint32_t Len) // static function for the SPI transfer
 {                 //
-
   struct spi_ioc_transfer spi;
+  memset(&spi, 0, sizeof(spi));
   int retVal = -1;
   int spi_cs_fd;
 
-  if (spi_device == 0) {
+  if (spi_device) {
     spi_cs_fd = spi_cs1_fd;
   } else {
     spi_cs_fd = spi_cs0_fd;
@@ -41,9 +41,6 @@ void EasyCAT::SPI_BuffTransfer(
   spi.speed_hz = spi_speed;
   spi.bits_per_word = spi_bitsPerWord;
   spi.cs_change = 0; // 0=Set CS high after a transfer, 1=leave CS set low
-  // spi.pad = 0;
-  // spi.tx_nbits = 0;
-  // spi.rx_nbits = 0;
 
   retVal = ioctl(spi_cs_fd, SPI_IOC_MESSAGE(1), &spi);
 
@@ -65,7 +62,7 @@ int EasyCAT::Disconnect() {
 
   status_value = close(*spi_cs_fd);
   if (status_value < 0) {
-    perror("Error - Could not close SPI device");
+    std::cerr << "Error - Could not close SPI device" << std::endl;
     exit(1);
   }
   return (status_value);
