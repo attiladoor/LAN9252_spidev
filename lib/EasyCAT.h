@@ -289,9 +289,6 @@ private:
 
   void SPI_BuffTransfer(char *Buff, uint32_t Len);
 
-  uint8_t SCS_;
-  SyncMode Sync_;
-
   int spi_cs0_fd; // file descriptor for the SPI device
   int spi_cs1_fd; // file descriptor for the SPI device
   unsigned char spi_mode;

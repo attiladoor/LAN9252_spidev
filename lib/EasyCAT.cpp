@@ -1,3 +1,4 @@
+// NOLINTBEGIN
 #include <cstring>
 #include <fcntl.h> //Needed for SPI port
 #include <iostream>
@@ -14,8 +15,8 @@
 // source:
 // https://raspberry-projects.com/pi/programming-in-c/spi/using-the-spi-interface
 
-//#define DEB                                                     // enable
-// debug prints
+// #define DEB                                                     // enable
+//  debug prints
 
 //--------------------------------------------------------------------------------------------------
 
@@ -474,3 +475,4 @@ void EasyCAT::SPIWriteProcRamFifo() // write data to the input process ram,
   SPI_BuffTransfer(&LocalBuff[0], 3 + SEC_BYTE_NUM_ROUND_IN); // SPI transfer
 #endif
 }
+// NOLINTEND
