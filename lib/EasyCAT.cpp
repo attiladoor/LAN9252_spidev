@@ -209,7 +209,7 @@ EasyCAT::MainTask() // must be called cyclically by the application
 
   else {
     SPIReadProcRamFifo(); // otherwise transfer process data from
-  }                       // the EtherCAT core to the output buffer
+  } // the EtherCAT core to the output buffer
 
   SPIWriteProcRamFifo(); // we always transfer process data from
                          // the input buffer to the EtherCAT core
@@ -217,8 +217,8 @@ EasyCAT::MainTask() // must be called cyclically by the application
   if (WatchDog)     // return the status of the State Machine
   {                 // and of the watchdog
     Status |= 0x80; //
-  }                 //
-  return Status;    //
+  } //
+  return Status; //
 }
 
 //---- read a directly addressable registers
@@ -300,8 +300,8 @@ unsigned long EasyCAT::SPIReadRegisterIndirect(unsigned short Address,
 
   do { // wait for command execution
     TempLong.Long = SPIReadRegisterDirect(ECAT_CSR_CMD); //
-  }                                                      //
-  while (TempLong.Byte[3] & ECAT_CSR_BUSY);              //
+  } //
+  while (TempLong.Byte[3] & ECAT_CSR_BUSY); //
 
   TempLong.Long =
       SPIReadRegisterDirect(ECAT_CSR_DATA); // read the requested register
@@ -336,8 +336,8 @@ void EasyCAT::SPIWriteRegisterIndirect(unsigned long DataOut,
   do // wait for command execution
   {  //
     TempLong.Long = SPIReadRegisterDirect(ECAT_CSR_CMD); //
-  }                                                      //
-  while (TempLong.Byte[3] & ECAT_CSR_BUSY);              //
+  } //
+  while (TempLong.Byte[3] & ECAT_CSR_BUSY); //
 }
 
 //---- read from process ram fifo
@@ -375,7 +375,7 @@ void EasyCAT::SPIReadProcRamFifo() // read data from the output process ram,
   {  // transferred from the output
     TempLong.Long =
         SPIReadRegisterDirect(ECAT_PRAM_RD_CMD); // process ram to the read fifo
-  }                                              //
+  } //
   while (TempLong.Byte[1] != (FST_BYTE_NUM_ROUND_OUT / 4)); //
 
   LocalBuff[0] = COMM_SPI_READ; // SPI read command
@@ -396,7 +396,7 @@ void EasyCAT::SPIReadProcRamFifo() // read data from the output process ram,
   {  // transferred from the output
     TempLong.Long =
         SPIReadRegisterDirect(ECAT_PRAM_RD_CMD); // process ram to the read fifo
-  }                                              //
+  } //
   while (TempLong.Byte[1] != SEC_BYTE_NUM_ROUND_OUT / 4); //
 
   LocalBuff[0] = COMM_SPI_READ; // SPI read command
@@ -443,8 +443,8 @@ void EasyCAT::SPIWriteProcRamFifo() // write data to the input process ram,
   do // check that the fifo has
   {  // enough free space
     TempLong.Long = SPIReadRegisterDirect(ECAT_PRAM_WR_CMD); //
-  }                                                          //
-  while (TempLong.Byte[1] < (FST_BYTE_NUM_ROUND_IN / 4));    //
+  } //
+  while (TempLong.Byte[1] < (FST_BYTE_NUM_ROUND_IN / 4)); //
 
   LocalBuff[0] = COMM_SPI_WRITE; // SPI write command
   LocalBuff[1] = 0x00;           // address of the write fifo
@@ -463,8 +463,8 @@ void EasyCAT::SPIWriteProcRamFifo() // write data to the input process ram,
   do // check that the fifo has
   {  // enough free space
     TempLong.Long = SPIReadRegisterDirect(ECAT_PRAM_WR_CMD); //
-  }                                                          //
-  while (TempLong.Byte[1] < (SEC_BYTE_NUM_ROUND_IN / 4));    //
+  } //
+  while (TempLong.Byte[1] < (SEC_BYTE_NUM_ROUND_IN / 4)); //
 
   LocalBuff[0] = COMM_SPI_WRITE; // SPI write command
   LocalBuff[1] = 0x00;           // address of the write fifo
