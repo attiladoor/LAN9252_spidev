@@ -14,16 +14,104 @@
 
 // source:
 // https://raspberry-projects.com/pi/programming-in-c/spi/using-the-spi-interface
+#define SOFT_CS
+#ifdef SOFT_CS
 
-// #define DEB                                                     // enable
-//  debug prints
+// Define the GPIO pin number for the CS pin
+#define CS_GPIO_PIN 19 // Example: GPIO pin 19 (adjust as needed)
 
-//--------------------------------------------------------------------------------------------------
+// Function to export the GPIO pin
+void exportGpioPin(const int pin) {
+  char buffer[64];
+  int len;
 
+  // Check if the direction file exists
+  len =
+      snprintf(buffer, sizeof(buffer), "/sys/class/gpio/gpio%d/direction", pin);
+  if (access(buffer, F_OK) == 0) {
+    // File exists, no need to export the pin
+    printf("GPIO pin %d is already exported.\n", pin);
+    return;
+  }
+
+  // File does not exist, proceed with exporting the pin
+  len = snprintf(buffer, sizeof(buffer), "/sys/class/gpio/export");
+  int fd = open(buffer, O_WRONLY);
+  if (fd < 0) {
+    perror("Unable to open export file");
+    exit(EXIT_FAILURE);
+  }
+
+  len = snprintf(buffer, sizeof(buffer), "%d", pin);
+  if (write(fd, buffer, len) < 0) {
+    perror("Unable to write to export file");
+    close(fd);
+    exit(EXIT_FAILURE);
+  }
+
+  close(fd);
+  printf("GPIO pin %d exported successfully.\n", pin);
+}
+
+// Function to set the GPIO pin direction
+void setGpioDirection(const int pin, const char *direction) {
+  char buffer[64];
+
+  snprintf(buffer, sizeof(buffer), "/sys/class/gpio/gpio%d/direction", pin);
+  int fd = open(buffer, O_WRONLY);
+  if (fd < 0) {
+    perror("Unable to open direction file");
+    exit(EXIT_FAILURE);
+  }
+  if (write(fd, direction, strlen(direction)) < 0) {
+    perror("Unable to write to direction file");
+    close(fd);
+    exit(EXIT_FAILURE);
+  }
+
+  printf("GPIO pin %d direction is set to %s.\n", pin, direction);
+  close(fd);
+}
+
+// Function to set the GPIO pin value
+void setGpioValue(const int pin, const int value) {
+  char buffer[64];
+  int len =
+      snprintf(buffer, sizeof(buffer), "/sys/class/gpio/gpio%d/value", pin);
+  int fd = open(buffer, O_WRONLY);
+  if (fd < 0) {
+    perror("Unable to open value file");
+    exit(EXIT_FAILURE);
+  }
+  len = snprintf(buffer, sizeof(buffer), "%d", value);
+  if (write(fd, buffer, len) < 0) {
+    perror("Unable to write to value file");
+    close(fd);
+    exit(EXIT_FAILURE);
+  }
+  close(fd);
+}
+
+// Function to set the CS pin low (active)
+void setCSPinLow(const int pin) { setGpioValue(pin, 0); }
+
+// Function to set the CS pin high (inactive)
+void setCSPinHigh(const int pin) { setGpioValue(pin, 1); }
+
+// Initialize the GPIO pin for CS control
+void initCSPin() {
+  exportGpioPin(CS_GPIO_PIN);
+  setGpioDirection(CS_GPIO_PIN, "out");
+  setCSPinHigh(CS_GPIO_PIN); // Ensure the CS pin is high (inactive) initially
+}
+#endif
 void EasyCAT::SPI_BuffTransfer(
     char *Buff,
     uint32_t Len) // static function for the SPI transfer
 {                 //
+#ifdef SOFT_CS
+  setCSPinLow(CS_GPIO_PIN);
+#endif
   struct spi_ioc_transfer spi;
   memset(&spi, 0, sizeof(spi));
   int retVal = -1;
@@ -45,6 +133,9 @@ void EasyCAT::SPI_BuffTransfer(
 
   retVal = ioctl(spi_cs_fd, SPI_IOC_MESSAGE(1), &spi);
 
+#ifdef SOFT_CS
+  setCSPinHigh(CS_GPIO_PIN);
+#endif
   if (retVal < 0) {
     std::cerr << "Error - Problem transmitting spi data..ioct retval: "
               << retVal << std::endl;
@@ -73,6 +164,13 @@ int EasyCAT::Disconnect() {
 //---------------------------------------------------------------
 
 int EasyCAT::Connect() {
+
+  constexpr int kTout = 1000;
+  ULONG TempLong;
+
+#ifdef SOFT_CS
+  initCSPin();
+#endif
   int status_value = -1;
   int *spi_cs_fd;
 
@@ -157,6 +255,48 @@ int EasyCAT::Connect() {
     exit(1);
   }
 
+  usleep(100000); // delay of 100mS
+  // LAN9252 reset
+  SPIWriteRegisterDirect(RESET_CTL, DIGITAL_RST); // LAN9252 reset
+                                                  // wait for reset to complete
+  int i = 0;
+  do {
+    i++;
+    TempLong.Long = SPIReadRegisterDirect(RESET_CTL);
+    // usleep(1000); // delay of 100mS
+  } while (((TempLong.Byte[0] & 0x01) != 0x00) && (i != kTout));
+
+  if (i == kTout) // time out expired
+  {
+    std::cerr << "ERROR at RESET_CTL " << std::endl;
+    return false; // initialization failed
+  }
+
+  // Read test
+  i = 0;
+  do // check the Byte Order Test Register
+  {
+    i++;
+    TempLong.Long = SPIReadRegisterDirect(BYTE_TEST);
+  } while ((TempLong.Long != 0x87654321) && (i != kTout));
+
+  if (i == kTout) // time out expired
+  {
+    std::cerr << "ERROR at BYTE_TEST " << std::endl;
+    // return false;
+  }
+
+  TempLong.Long = SPIReadRegisterDirect(ID_REV); // read the chip identification
+  printf("Detected chip ");                      // and revision, and print it
+  printf("%x ", TempLong.Word[1]);               // out on the serial line
+  printf(" Rev ");                               //
+  printf("%u \n", TempLong.Word[0]);             //
+
+  if (TempLong.Word[1] != 0x9252) {
+    std::cerr << "ERROR at ID_REV " << std::endl;
+    return false;
+  }
+
   std::cout << "Connected successfully" << std::endl;
   return status_value;
 }
@@ -164,8 +304,7 @@ int EasyCAT::Connect() {
 //---- EtherCAT task
 //------------------------------------------------------------------------------
 
-unsigned char
-EasyCAT::MainTask() // must be called cyclically by the application
+bool EasyCAT::MainTask() // must be called cyclically by the application
 
 {
   bool WatchDog = true;
@@ -184,41 +323,39 @@ EasyCAT::MainTask() // must be called cyclically by the application
 
   TempLong.Long = SPIReadRegisterIndirect(
       AL_STATUS, 1);                // read the EtherCAT State Machine status
-  Status = TempLong.Byte[0] & 0x0F; //
-  if (Status == ESM_OP)             // to see if we are in operational state
-    Operational = true;             //
-  else                              // set/reset the corrisponding flag
-    Operational = false;            //
-
-  //--- process data transfer ----------
-  //
-  if (!Operational)                        // if watchdog is active or we are
-  {                                        // not in operational state, reset
-    for (i = 0; i < TOT_BYTE_NUM_OUT; i++) // the output buffer
-      BufferOut.Byte[i] = 0;               //
-
-#ifdef DEB // only if debug is enabled
-    if (!Operational) {
-      printf("Not operational\n");
-    }
-    if (WatchDog) {
-      printf("WatchDog\n");
-    }
-#endif
+  Status = TempLong.Byte[0] & 0x0F; // to see if we are in operational state
+  if (Status == ESM_OP) {
+    Operational = true;
+  } else { // set/reset the corrisponding flag
+    Operational = false;
   }
 
-  else {
-    SPIReadProcRamFifo(); // otherwise transfer process data from
-  } // the EtherCAT core to the output buffer
+  //--- process data transfer ----------
+  if (WatchDog | !Operational) {
+    // if watchdog is active or we are not in operational state, reset the
+    // output buffer
+    for (i = 0; i < TOT_BYTE_NUM_OUT; i++) {
+      BufferOut.Byte[i] = 0;
+    }
+
+    if (false) {
+      if (!Operational) {
+        std::cerr << "Not operational" << std::endl;
+      }
+
+      if (WatchDog) {
+        std::cerr << "WatchDog" << std::endl;
+      }
+    }
+    return false;
+  }
+
+  SPIReadProcRamFifo(); // otherwise transfer process data from
 
   SPIWriteProcRamFifo(); // we always transfer process data from
                          // the input buffer to the EtherCAT core
 
-  if (WatchDog)     // return the status of the State Machine
-  {                 // and of the watchdog
-    Status |= 0x80; //
-  } //
-  return Status; //
+  return true;
 }
 
 //---- read a directly addressable registers
@@ -305,7 +442,8 @@ unsigned long EasyCAT::SPIReadRegisterIndirect(unsigned short Address,
 
   TempLong.Long =
       SPIReadRegisterDirect(ECAT_CSR_DATA); // read the requested register
-  return TempLong.Long;                     //
+
+  return TempLong.Long;
 }
 
 //---- write an indirectly addressable registers

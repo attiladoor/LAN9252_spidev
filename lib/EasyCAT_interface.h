@@ -19,7 +19,7 @@ typedef struct            //-- input buffer ------------------
 
 class EasyCAT_interface {
 public:
-  virtual unsigned char MainTask() = 0;
+  virtual bool MainTask() = 0;
 
   virtual const PROCBUFFER_OUT &getBufferOut() = 0;
   virtual PROCBUFFER_IN &getBufferIn() = 0;

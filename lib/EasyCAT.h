@@ -4,15 +4,6 @@
 
 #include <stdint.h>
 
-#if (defined CUSTOM)
-#include "TestEasyCAT_Custom.h" // This file has been created by the Easy Configurator
-// and must be located in the Arduino project folder
-//
-// There are two others files created by the Easy Configurator:
-// TestEasyCAT_Custom.bin that must be loaded into the EEPROM.
-// TestEasyCAT_Custom.xml that must be used by the EtherCAT master.
-#endif
-
 //*************************************************************************************
 
 #if (!defined BYTE_NUM &&                                                      \
@@ -265,9 +256,8 @@ public:
   EasyCAT() = default; // default constructor
   ~EasyCAT() { Disconnect(); }
 
-  unsigned char
-  MainTask() override; // EtherCAT main task
-                       // must be called cyclically by the application
+  bool MainTask() override; // EtherCAT main task
+                            // must be called cyclically by the application
 
   const PROCBUFFER_OUT &getBufferOut() override { return BufferOut; }
   PROCBUFFER_IN &getBufferIn() override { return BufferIn; }

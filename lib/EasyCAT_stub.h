@@ -8,7 +8,7 @@ public:
   EasyCAT_stub() = default; // default constructor
   ~EasyCAT_stub() = default;
 
-  unsigned char MainTask() override { return 0; }; // EtherCAT main task
+  bool MainTask() override { return true; }; // EtherCAT main task
   // must be called cyclically by the application
 
   const PROCBUFFER_OUT &getBufferOut() override { return BufferOut; }
