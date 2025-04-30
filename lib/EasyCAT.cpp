@@ -257,20 +257,20 @@ int EasyCAT::Connect() {
 
   usleep(100000); // delay of 100mS
   // LAN9252 reset
-  SPIWriteRegisterDirect(RESET_CTL, DIGITAL_RST); // LAN9252 reset
-                                                  // wait for reset to complete
+  // SPIWriteRegisterDirect(RESET_CTL, DIGITAL_RST); // LAN9252 reset
+  //                                                 // wait for reset to complete
   int i = 0;
-  do {
-    i++;
-    TempLong.Long = SPIReadRegisterDirect(RESET_CTL);
-    // usleep(1000); // delay of 100mS
-  } while (((TempLong.Byte[0] & 0x01) != 0x00) && (i != kTout));
+  // do {
+  //   i++;
+  //   TempLong.Long = SPIReadRegisterDirect(RESET_CTL);
+  //   // usleep(1000); // delay of 100mS
+  // } while (((TempLong.Byte[0] & 0x01) != 0x00) && (i != kTout));
 
-  if (i == kTout) // time out expired
-  {
-    std::cerr << "ERROR at RESET_CTL " << std::endl;
-    return false; // initialization failed
-  }
+  // if (i == kTout) // time out expired
+  // {
+  //   std::cerr << "ERROR at RESET_CTL " << std::endl;
+  //   return false; // initialization failed
+  // }
 
   // Read test
   i = 0;
